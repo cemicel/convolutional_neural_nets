@@ -2,20 +2,24 @@ import matplotlib.pyplot as plt
 import numpy as np
 import tensorflow as tf
 import scipy.misc
-from sklearn.utils import shuffle
 import operator
 import functools
 import os
-
-# -------------------------------------------------------------------------------------------------------------------
-
-print(scipy.misc)
 
 root_path = '/data_text_form'
 
 
 def get_data(path_r, num_of_pics=None, for_test=None):
-    paths = [x[0] for c, x in enumerate(os.walk(os.getcwd()+path_r)) if c > 0]
+    """method for getting numpy matrices of images and one-hot-encode labels for both training and tasting
+     Data should be stored in separate files with names i.png (0<=i<=n)
+
+    Parameters:
+    - num_of_pics - provide particular number of pictures to be extracted,
+         if None extracts all.
+    - for_test - number of pics for testing. Cannot be bigger than 30% or less that 1
+        by default 10%
+    """
+    paths = [x[0] for c, x in enumerate(os.walk(os.getcwd() + path_r)) if c > 0]
 
     f = paths[1]
     ath, dirs, files = next(os.walk(f))
@@ -73,6 +77,14 @@ neurons_in_first_dense = 1024
 
 
 def get_conv_layer(input_data, num_chanels, num_filters, filter_shape, pool_shape, name):
+    """ method for getting a convolutional layer
+        with particular parameters as:
+        num_of_chanels - here it is 1, for grayscale
+        num_of_filters - self explained
+        filter_shape - self explained
+        pool_shape - maxpool shape
+        strides for max pool is 2x2"""
+
     conv_filter_shape = [filter_shape[0], filter_shape[1], num_chanels, num_filters]
 
     weights = tf.Variable(tf.truncated_normal(conv_filter_shape, stddev=0.03), name=name + '_W')
@@ -97,6 +109,8 @@ def get_conv_layer(input_data, num_chanels, num_filters, filter_shape, pool_shap
 
 
 def get_full_connected(shape=[None, None], prev_layer=None, is_last=False):
+    '''method for getting a fully connected layer layers
+       if last layer flag is false relu is apllied to the layer'''
     weights = tf.Variable(tf.truncated_normal(shape=shape, stddev=.03, name='wd1'))
     biases = tf.Variable(tf.truncated_normal(shape=[shape[1]], stddev=.01, name='bd1'))
     dense_layer = tf.matmul(prev_layer, weights) + biases
@@ -134,14 +148,14 @@ test_acc_list = []
 with tf.Session() as sess:
     test_acc_list = []
     sess.run(init)
-    for i in range(3):
+    for i in range(50):
         _, c = sess.run([optimiser, cross_entropy], feed_dict={X_shaped: train_input, Y: train_label})
         test_acc = sess.run(accuracy, feed_dict={X_shaped: test_input, Y: test_label})
         print("Epoch:", (i + 1), ' cost: {}'.format(c), " test accuracy: {:.3f}".format(test_acc))
         test_acc_list.append(test_acc)
+    # for debuging output of the network
+    # print(np.round(sess.run(Y_, feed_dict={X_shaped: train_input, Y: train_label}), 3))
+    # print(np.round(sess.run(Y, feed_dict={X_shaped: train_input, Y: train_label}), 3))
 
-    #print(np.round(sess.run(Y_, feed_dict={X_shaped: train_input, Y: train_label}), 3))
-    #print(np.round(sess.run(Y, feed_dict={X_shaped: train_input, Y: train_label}), 3))
-
-    plt.plot(range(3), test_acc_list)
+    plt.plot(range(50), test_acc_list)
     plt.show()
