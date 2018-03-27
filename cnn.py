@@ -1,7 +1,7 @@
 import matplotlib.pyplot as plt
 import numpy as np
 import tensorflow as tf
-from scipy import misc
+import scipy.misc
 from sklearn.utils import shuffle
 import operator
 import functools
@@ -9,11 +9,14 @@ import os
 
 # -------------------------------------------------------------------------------------------------------------------
 
+print(scipy.misc)
+
 root_path = '/data_text_form'
 
 
 def get_data(path_r, num_of_pics=None, for_test=None):
-    paths = [x[0] for c, x in enumerate(os.walk(path_r)) if c > 0]
+    paths = [x[0] for c, x in enumerate(os.walk(os.getcwd()+path_r)) if c > 0]
+
     f = paths[1]
     ath, dirs, files = next(os.walk(f))
     file_count = len(files) - 1
@@ -38,10 +41,10 @@ def get_data(path_r, num_of_pics=None, for_test=None):
             one_hot_enc_arr[p_count] = 1
 
             if pic < for_test:
-                test_input.append(misc.imread(path + '/{}.png'.format(pic), mode="L"))
+                test_input.append(scipy.misc.imread(path + '/{}.png'.format(pic), mode="L"))
                 test_label.append(one_hot_enc_arr)
             else:
-                train_input.append(misc.imread(path + '/{}.png'.format(pic), mode="L"))
+                train_input.append(scipy.misc.imread(path + '/{}.png'.format(pic), mode="L"))
                 train_label.append(one_hot_enc_arr)
 
     train_input = np.expand_dims(train_input, -1)
@@ -131,14 +134,14 @@ test_acc_list = []
 with tf.Session() as sess:
     test_acc_list = []
     sess.run(init)
-    for i in range(50):
+    for i in range(3):
         _, c = sess.run([optimiser, cross_entropy], feed_dict={X_shaped: train_input, Y: train_label})
         test_acc = sess.run(accuracy, feed_dict={X_shaped: test_input, Y: test_label})
         print("Epoch:", (i + 1), ' cost: {}'.format(c), " test accuracy: {:.3f}".format(test_acc))
         test_acc_list.append(test_acc)
 
-        # print(np.round(sess.run(Y_, feed_dict={X_shaped: train_input, Y: train_labels}), 3))
-        # print(np.round(sess.run(Y, feed_dict={X_shaped: train_input, Y: train_label}), 3))
+    #print(np.round(sess.run(Y_, feed_dict={X_shaped: train_input, Y: train_label}), 3))
+    #print(np.round(sess.run(Y, feed_dict={X_shaped: train_input, Y: train_label}), 3))
 
-    plt.plot(range(50), test_acc_list)
+    plt.plot(range(3), test_acc_list)
     plt.show()
