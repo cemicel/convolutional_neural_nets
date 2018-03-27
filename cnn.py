@@ -58,9 +58,6 @@ def get_data(path_r, num_of_pics=None, for_test=None):
 
 
 def run(root_path):
-
-
-
     train_input, train_label, test_input, test_label = get_data(root_path, num_of_pics=40)
 
     image_hight = train_input.shape[1]
@@ -68,9 +65,6 @@ def run(root_path):
     classes_numb = 10
 
     # -------------------------------------------------------------------------------------------------------------------
-
-
-
 
     X = tf.placeholder(tf.float32, [None, image_hight * image_width * 1], name='X_muliplied')
 
@@ -135,7 +129,6 @@ def run(root_path):
     Y_ = tf.nn.softmax(dense_layer_2)
     # -------------------------------------------------------------------------------------------------------------------
 
-
     cross_entropy = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits_v2(logits=dense_layer_2, labels=Y))
     optimiser = tf.train.AdamOptimizer().minimize(cross_entropy)
 
@@ -143,7 +136,7 @@ def run(root_path):
     accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
     tf.summary.scalar('accuracy', accuracy)
     merged = tf.summary.merge_all()
-
+    # -------------------------------------------------------------------------------------------------------------------
     init = tf.global_variables_initializer()
     test_acc_list = []
 
@@ -164,8 +157,6 @@ def run(root_path):
 
 
 if __name__ == '__main__':
-
     root_path_ = '/data_text_form'
-
 
     run(root_path_)
