@@ -5,57 +5,58 @@ from scipy import misc
 from sklearn.utils import shuffle
 import operator
 import functools
+import os
 
 # -------------------------------------------------------------------------------------------------------------------
 
-length = 90
-class_one = []
-class_two = []
+root_path = '/data_text_form'
 
-label_one = []
-label_two = []
 
-path_for_class_one = '/Users/volodymyrkepsha/Documents/Study/Python/Projects/FILE/my_data/2.1/cropped/{}.PNG'
-path_for_class_two = '/Users/volodymyrkepsha/Documents/Study/Python/Projects/FILE/my_data/3.2/cropped/{}.PNG'
+def get_data(path_r, num_of_pics=None, for_test=None):
+    paths = [x[0] for c, x in enumerate(os.walk(path_r)) if c > 0]
+    f = paths[1]
+    ath, dirs, files = next(os.walk(f))
+    file_count = len(files) - 1
+    test_input = []
+    test_label = []
+    train_input = []
+    train_label = []
+    if num_of_pics is None:
+        num_of_pics = file_count
+    if for_test is None and num_of_pics is None:
+        for_test = file_count * len(paths) * .01
+    elif for_test is None and num_of_pics is not None:
+        for_test = num_of_pics * len(paths) * .01
+    elif for_test < num_of_pics * len(paths) * .01:
+        raise ValueError('Not enough for testing')
+    elif for_test > file_count * len(paths) * .3:
+        raise ValueError('Too many for testing')
 
-for i in range(length):
-    class_one.append((misc.imread(path_for_class_one.format(i), mode="L")))
-    label_one.append([1, 0])
-for i in range(length):
-    class_two.append((misc.imread(path_for_class_two.format(i), mode="L")))
-    label_two.append([0, 1])
+    for p_count, path in enumerate(paths):
+        one_hot_enc_arr = np.zeros(len(paths))
+        for pic in range(num_of_pics):
+            one_hot_enc_arr[p_count] = 1
 
-all_data = []
-all_labels = []
+            if pic < for_test:
+                test_input.append(misc.imread(path + '/{}.png'.format(pic), mode="L"))
+                test_label.append(one_hot_enc_arr)
+            else:
+                train_input.append(misc.imread(path + '/{}.png'.format(pic), mode="L"))
+                train_label.append(one_hot_enc_arr)
 
-all_data.extend(class_one)
-all_data.extend(class_two)
+    train_input = np.expand_dims(train_input, -1)
+    train_label = np.array(train_label)
+    test_input = np.expand_dims(test_input, -1)
+    test_label = np.array(test_label)
 
-all_labels.extend(label_one)
-all_labels.extend(label_two)
+    return train_input, train_label, test_input, test_label
 
-all_data, all_labels = shuffle(all_data, all_labels, random_state=0)
 
-train_input = np.expand_dims(np.array([all_data[i] for i in range(80)]), -1)
-train_label = np.array([all_labels[i] for i in range(80)])
-
-test_input = np.expand_dims((np.array([all_data[i] for i in range(80, 91)])), -1)
-test_label = np.array([all_labels[i] for i in range(80, 91)])
+train_input, train_label, test_input, test_label = get_data(root_path, num_of_pics=40)
 
 image_hight = train_input.shape[1]
 image_width = train_input.shape[2]
-
-x = tf.placeholder(tf.float32, [None, image_hight * image_width * 1], name='X_muliplied')
-
-x_shaped = tf.reshape(x, [-1, image_hight, image_width, 1], name='X_shaped_{}_{}'.format(image_hight, image_width))
-
-y = tf.placeholder(tf.float32, [None, 2], name="Y_labels")
-
-neurons_in_first_dense = 1024
-classes_numb = 2
-
-image_hight = train_input.shape[1]
-image_width = train_input.shape[2]
+classes_numb = 10
 
 # -------------------------------------------------------------------------------------------------------------------
 
@@ -64,7 +65,8 @@ X = tf.placeholder(tf.float32, [None, image_hight * image_width * 1], name='X_mu
 X_shaped = tf.reshape(X, [-1, image_hight, image_width, 1], name='X_shaped_{}_{}'.format(image_hight, image_width))
 
 Y = tf.placeholder(tf.float32, [None, classes_numb], name="Y_labels")
-neurons_in_first_dense = 1000
+
+neurons_in_first_dense = 1024
 
 
 def get_conv_layer(input_data, num_chanels, num_filters, filter_shape, pool_shape, name):
@@ -111,28 +113,32 @@ flattened = tf.reshape(conv_layer_2, [-1, flattened_shape])
 dense_layer_1 = get_full_connected([flattened_shape, neurons_in_first_dense], prev_layer=flattened, is_last=False)
 dense_layer_2 = get_full_connected([neurons_in_first_dense, classes_numb], prev_layer=dense_layer_1, is_last=True)
 
+Y_ = tf.nn.softmax(dense_layer_2)
 # -------------------------------------------------------------------------------------------------------------------
 
-Y_ = tf.nn.softmax(dense_layer_2)
 
 cross_entropy = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits_v2(logits=dense_layer_2, labels=Y))
-optimiser = tf.train.AdamOptimizer(learning_rate=0.0001).minimize(cross_entropy)
+optimiser = tf.train.AdamOptimizer().minimize(cross_entropy)
 
 correct_prediction = tf.equal(tf.argmax(Y, 1), tf.argmax(Y_, 1))
 accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
 tf.summary.scalar('accuracy', accuracy)
+merged = tf.summary.merge_all()
 
 init = tf.global_variables_initializer()
-
-range_val = 0
+test_acc_list = []
 
 with tf.Session() as sess:
+    test_acc_list = []
     sess.run(init)
-    for i in range(30):
-        range_val = i
+    for i in range(50):
         _, c = sess.run([optimiser, cross_entropy], feed_dict={X_shaped: train_input, Y: train_label})
         test_acc = sess.run(accuracy, feed_dict={X_shaped: test_input, Y: test_label})
         print("Epoch:", (i + 1), ' cost: {}'.format(c), " test accuracy: {:.3f}".format(test_acc))
+        test_acc_list.append(test_acc)
 
-    # print(np.round(sess.run(Y_, feed_dict={X_shaped: train_input, Y: train_label}), 3))
-    # print(np.round(sess.run(Y, feed_dict={X_shaped: train_input, Y: train_label}), 3))
+        # print(np.round(sess.run(Y_, feed_dict={X_shaped: train_input, Y: train_labels}), 3))
+        # print(np.round(sess.run(Y, feed_dict={X_shaped: train_input, Y: train_label}), 3))
+
+    plt.plot(range(50), test_acc_list)
+    plt.show()
