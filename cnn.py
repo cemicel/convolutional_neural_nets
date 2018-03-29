@@ -46,9 +46,9 @@ def get_data(path_r, numb_of_pictures=None, for_test=None):
 
     for p_count, path in enumerate(paths):
         one_hot_enc_arr = np.zeros(len(paths))
+        one_hot_enc_arr[p_count] = 1
+        print(path.split('/')[-1], one_hot_enc_arr)
         for pic in range(num_of_pics):
-            one_hot_enc_arr[p_count] = 1
-
             if pic < for_test:
                 test_input.append(scipy.misc.imread(path + '/{}.png'.format(pic), mode="L"))
                 test_label.append(one_hot_enc_arr)
@@ -61,10 +61,15 @@ def get_data(path_r, numb_of_pictures=None, for_test=None):
     test_input = np.expand_dims(test_input, -1)
     test_label = np.array(test_label)
 
-    print('Train input shape: {}, train label shape: {}\nTest input shape: {}, test label shape: {}'.
-          format(train_input.shape, (train_label).shape, test_input.shape, (test_label).shape))
+    # print('Train input shape: {}, train label shape: {}\nTest input shape: {}, test label shape: {}'.
+    #      format(train_input.shape, (train_label).shape, test_input.shape, (test_label).shape))
 
     return train_input, train_label, test_input, test_label
+
+
+def get_custom_input(path):
+    image = scipy.misc.imread(path, mode="L")
+    return np.expand_dims(image, -1)
 
 
 def get_conv_layer(input_data, num_chanels, num_filters, filter_shape, pool_shape, name):
@@ -112,7 +117,7 @@ def get_full_connected(shape=[None, None], prev_layer=None, is_last=False):
     return dense_layer
 
 
-def run(data, train=True, iterations=1, ):
+def run(data, train=True, iterations=1, test_custom=None):
     train_input, train_label, test_input, test_label = data
 
     image_hight = train_input.shape[1]
@@ -129,8 +134,10 @@ def run(data, train=True, iterations=1, ):
 
     neurons_in_first_dense = 1024
 
-    conv_layer_1 = get_conv_layer(X_shaped, 1, 32, [5, 5], [2, 2], name='layer_1')
-    conv_layer_2 = get_conv_layer(conv_layer_1, 32, 64, [5, 5], [2, 2], name='layer_2')
+    conv_layer_1 = get_conv_layer(X_shaped, num_chanels=1, num_filters=32, filter_shape=[5, 5], pool_shape=[2, 2],
+                                  name='layer_1')
+    conv_layer_2 = get_conv_layer(conv_layer_1, num_chanels=32, num_filters=64, filter_shape=[5, 5],
+                                  pool_shape=[2, 2], name='layer_2')
 
     flattened_shape = functools.reduce(operator.mul, [i.value for i in conv_layer_2.shape[1:]], 1)
     flattened = tf.reshape(conv_layer_2, [-1, flattened_shape])
@@ -168,16 +175,31 @@ def run(data, train=True, iterations=1, ):
                                    "/Users/volodymyrkepsha/Documents/Study/Python/Projects/neural_nets/neural_network_tensorflow/save_font/model.ckpt")
             plt.plot(range(iterations), test_acc_list)
             plt.show()
+
+        elif test_custom is not None:
+            saver.restore(sess,
+                          "/Users/volodymyrkepsha/Documents/Study/Python/Projects/neural_nets/neural_network_tensorflow/save_font/model.ckpt")
+
+            test_input = np.array(test_custom)
+            test_label = np.array([[0, 0, 0, 0, 0, 0, 0, 0, 0, 0]] )
+
+            print(np.round(sess.run(Y_, feed_dict={X_shaped: test_input, Y: test_label})))
+
         else:
             saver.restore(sess,
                           "/Users/volodymyrkepsha/Documents/Study/Python/Projects/neural_nets/neural_network_tensorflow/save_font/model.ckpt")
-            print(np.round(sess.run(Y, feed_dict={X_shaped: test_input, Y: test_label})))
-            print(np.round(sess.run(Y_, feed_dict={X_shaped: test_input, Y: test_label})))
+            # print(np.round(sess.run(Y, feed_dict={X_shaped: test_input, Y: test_label})))
+            # print(np.round(sess.run(Y_, feed_dict={X_shaped: test_input, Y: test_label})))
 
 
 if __name__ == '__main__':
     root_path_ = 'data_text_form/'
 
-    data_ = get_data(root_path_, numb_of_pictures=10, for_test=3)
+    data_ = get_data(root_path_, numb_of_pictures=90, for_test=10)
 
     run(data=data_, train=True, iterations=50)
+
+    path_custom_times = '/custom_path_of_image_28x168'
+    image_time = get_custom_input(path=path_custom_times)
+    run(data=data_, train=False, iterations=50, test_custom=[image_time])
+
