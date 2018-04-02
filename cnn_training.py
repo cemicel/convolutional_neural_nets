@@ -98,7 +98,7 @@ def run(batch_size=5, epochs=1):
     correct_prediction = tf.equal(tf.argmax(Y, 1), tf.argmax(Y_, 1))
     accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
     tf.summary.scalar('accuracy', accuracy)
-    
+
     # -------------------------------------------------------------------------------------------------------------------
 
     init = tf.global_variables_initializer()
@@ -149,4 +149,4 @@ def run(batch_size=5, epochs=1):
 
 
 if __name__ == '__main__':
-    run(batch_size=5, epochs=20)
+    run(batch_size=5, epochs=100)
