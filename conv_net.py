@@ -5,12 +5,63 @@ import scipy.misc
 import operator
 import functools
 import os
-from cnn import batch_generator, generate_data
+import sys
+import batch_generator, generate_data
 
 
-def get_custom_input(path):
-    image = scipy.misc.imread(path, mode="L")
-    return np.expand_dims(image, -1)
+def get_data_test(path_r, numb_of_pictures=None, for_test=None):
+    """method for getting numpy matrices of images and one-hot-encode labels for both training and tasting
+     Data should be stored in separate files with names i.png (0<=i<=n)
+    Parameters:
+    - num_of_pics - provide particular number of pictures to be extracted,
+         if None extracts all.
+    - for_test - number of pics for testing. Cannot be bigger than 30% or less that 1
+        by default 10%
+    """
+
+    paths = [x[0] for c, x in enumerate(os.walk(path_r)) if c > 0]
+
+    f = paths[1]
+    _, _, files = next(os.walk(f))
+
+    file_count = len(files) - 1
+    test_input = []
+    test_label = []
+    train_input = []
+    train_label = []
+
+    if not for_test:
+        for p_count, path in enumerate(paths):
+            one_hot_enc_arr = np.zeros(len(paths))
+            one_hot_enc_arr[p_count] = 1
+
+            for pic in range(5):
+                train_input.append(scipy.misc.imread(path + '/{}.PNG'.format(pic), mode="L"))
+                train_label.append(one_hot_enc_arr)
+
+        train_input = np.expand_dims(train_input, -1)
+        train_label = np.array(train_label)
+
+        '''
+        print('Train input shape: {}, train label shape: {}\nTest input shape: {}, test label shape: {}'.
+              format(train_input.shape, (train_label).shape, test_input.shape, (test_label).shape))
+        '''
+        return train_input, train_label
+    else:
+        for p_count, path in enumerate(paths):
+            one_hot_enc_arr = np.zeros(len(paths))
+            one_hot_enc_arr[p_count] = 1
+            for pic in range(2):
+                test_input.append(scipy.misc.imread(path + '/{}.PNG'.format(pic), mode="L"))
+                test_label.append(one_hot_enc_arr)
+
+        test_input = np.expand_dims(test_input, -1)
+        test_label = np.array(test_label)
+        '''
+        print('Test input shape: {}, test label shape: {}'.
+              format(test_input.shape, (test_label).shape))
+        '''
+        return test_input, test_label
 
 
 def get_conv_layer(input_data, num_chanels, num_filters, filter_shape, pool_shape, name):
@@ -58,95 +109,83 @@ def get_full_connected(shape=[None, None], prev_layer=None, is_last=False):
     return dense_layer
 
 
-def run(batch_size=5, epochs=1):
+def run(batch_size=5, epochs=1, mode='training'):
     image_hight = generate_data.img_height
     image_width = generate_data.img_width
 
     classes_numb = 10
-
+    neurons_in_first_dense = 1024
     # -------------------------------------------------------------------------------------------------------------------
 
     X = tf.placeholder(tf.float32, [None, image_hight * image_width * 1], name='X_muliplied')
-
     X_shaped = tf.reshape(X, [-1, image_hight, image_width, 1], name='X_shaped_{}_{}'.format(image_hight, image_width))
-
     Y = tf.placeholder(tf.float32, [None, classes_numb], name="Y_labels")
-
-    neurons_in_first_dense = 1024
 
     conv_layer_1 = get_conv_layer(X_shaped, num_chanels=1, num_filters=32, filter_shape=[4, 4], pool_shape=[2, 2],
                                   name='layer_1')
-
     conv_layer_2 = get_conv_layer(conv_layer_1, num_chanels=32, num_filters=64, filter_shape=[6, 6],
                                   pool_shape=[2, 2], name='layer_2')
-
     conv_layer_3 = get_conv_layer(conv_layer_2, num_chanels=64, num_filters=128, filter_shape=[8, 8],
                                   pool_shape=[4, 4], name='layer_3')
-
     flattened_shape = functools.reduce(operator.mul, [i.value for i in conv_layer_3.shape[1:]], 1)
     flattened = tf.reshape(conv_layer_3, [-1, flattened_shape])
-
     dense_layer_1 = get_full_connected([flattened_shape, neurons_in_first_dense], prev_layer=flattened, is_last=False)
     dense_layer_2 = get_full_connected([neurons_in_first_dense, classes_numb], prev_layer=dense_layer_1, is_last=True)
-
     Y_ = tf.nn.softmax(dense_layer_2)
     # -------------------------------------------------------------------------------------------------------------------
-
     cross_entropy = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits_v2(logits=dense_layer_2, labels=Y))
     optimiser = tf.train.AdamOptimizer().minimize(cross_entropy)
 
     correct_prediction = tf.equal(tf.argmax(Y, 1), tf.argmax(Y_, 1))
     accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
     tf.summary.scalar('accuracy', accuracy)
-
     # -------------------------------------------------------------------------------------------------------------------
-
     init = tf.global_variables_initializer()
-
     saver = tf.train.Saver()
-
     with tf.Session() as sess:
 
-        test_acc = 0
-        for ep in range(epochs):
-            test_acc_list = []
-            sess.run(init)
+        sess.run(init)
 
-            # initialize/reinitialize batch_generator module
-            # reinitialize - indexes of pictures to (0,batch size)
+        if mode == 'training':
+
             batch_generator.init(batch_size=batch_size)
-            # derive number of butches
-            batches = (batch_generator.train_class_size / batch_size)
-            # get trainting, test data
             test_input, test_label = batch_generator.get_test()
+            total_batch = int(batch_generator.train_class_size / batch_size)
+            test_acc_list = []
+            for e in range(epochs):
+                test_acc = 0
+                avg_cost = 0
 
-            for i in range(int(batches)):
-                train_input, train_label = batch_generator.next_batch()
+                for b in range(total_batch):
+                    train_input, train_label = batch_generator.next_batch()
+                    _, c = sess.run([optimiser, cross_entropy], feed_dict={X_shaped: train_input, Y: train_label})
+                    avg_cost += c / total_batch
 
-                _, c = sess.run([optimiser, cross_entropy], feed_dict={X_shaped: train_input, Y: train_label})
-                test_acc += sess.run(accuracy, feed_dict={X_shaped: test_input, Y: test_label})
+                test_acc = sess.run(accuracy, feed_dict={X_shaped: test_input, Y: test_label})
+                print("Epoch:", (e + 1), ' cost: {}'.format(avg_cost), " test accuracy: {:.3f}".format(test_acc))
+                batch_generator.reset_batch_index()
 
-            print("Epoch:", (i + 1), ' cost: {}'.format(c),
-                  "mean test accuracy: {:.3f}".format(test_acc / epochs))
-            test_acc_list.append(test_acc)
-            # for debuging output of the network
-            # print(np.round(sess.run(Y_, feed_dict={X_shaped: train_input, Y: train_label}), 3))
-            # print(np.round(sess.run(Y, feed_dict={X_shaped: train_input, Y: train_label}), 3))
-            save_path = saver.save(sess, "/Users/volodymyrkepsha/Documents/github/cnn/save/tmp/model.ckpt")
+                test_acc_list.append(test_acc)
+            saver.save(sess, os.getcwd() + '/save/tmp/model.ckpt')
 
-            # plt.plot(range(epochs), test_acc_list)
-            # plt.show()
-
-        '''
+            plt.plot([i for i in range(epochs)], (test_acc_list))
+            plt.show()
         else:
+
+            test_input, test_label = get_data_test('/Users/volodymyrkepsha/Documents/github/cnn/test', for_test=True)
             saver.restore(sess,
                           "/Users/volodymyrkepsha/Documents/github/cnn/save/tmp/model.ckpt")
             print(np.round(sess.run(Y, feed_dict={X_shaped: test_input, Y: test_label})))
+
             print(np.round(sess.run(Y_, feed_dict={X_shaped: test_input, Y: test_label})))
             test_acc = sess.run(accuracy, feed_dict={X_shaped: test_input, Y: test_label})
             print(" test accuracy: {:.3f}".format(test_acc))
-            '''
 
 
 if __name__ == '__main__':
-    run(batch_size=5, epochs=100)
+
+    try:
+        mode = sys.argv[1]
+        run(batch_size=5, epochs=2)
+    except IndexError:
+        print('provide type: training / test')
