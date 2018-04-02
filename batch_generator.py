@@ -7,7 +7,7 @@ data_paths_global = None
 train_class_size = None
 test_class_size = None
 index_generator_global = None
-start = 0
+start = None
 stop = None
 current_work_dir = None
 test_dir = None
@@ -24,20 +24,26 @@ def index_generator(start, stop):
 
 
 def init(batch_size):
-    global batch_size_global, index_generator_global, train_class_size, stop, current_work_dir, train_data_paths, test_data_paths, test_class_size, train_class_size,start
+    global batch_size_global, index_generator_global, train_class_size, stop, current_work_dir, train_data_paths, test_data_paths, test_class_size, train_class_size, start
     batch_size_global = batch_size
     current_work_dir = os.getcwd()
     train_data_paths = [current_work_dir + '/training/' + direct for direct in
                         os.listdir(current_work_dir + '/training')]
     test_data_paths = [current_work_dir + '/test/' + dir for dir in os.listdir(current_work_dir + '/test/')]
     test_class_size = len(os.listdir(test_data_paths[0]))
+
     train_class_size = len(os.listdir(train_data_paths[0]))
     start = 0
-    index_generator_global = index_generator(0, train_class_size)
+    index_generator_global = index_generator(start, train_class_size)
     stop = batch_size
 
 
+def reset_batch_index():
 
+    global start, stop, batch_size_global,index_generator_global
+    start = 0
+    stop = batch_size_global
+    index_generator_global = index_generator(start, train_class_size)
 
 
 def get_test():
