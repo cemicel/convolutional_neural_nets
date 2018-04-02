@@ -5,131 +5,7 @@ import scipy.misc
 import operator
 import functools
 import os
-
-'''
-
-def get_data(path_r, numb_of_pictures=None, for_test=None):
-    """method for getting numpy matrices of images and one-hot-encode labels for both training and tasting
-     Data should be stored in separate files with names i.png (0<=i<=n)
-    Parameters:
-    - num_of_pics - provide particular number of pictures to be extracted,
-         if None extracts all.
-    - for_test - number of pics for testing. Cannot be bigger than 30% or less that 1
-        by default 10%
-    """
-
-    paths = [x[0] for c, x in enumerate(os.walk(path_r)) if c > 0]
-
-    f = paths[1]
-    _, _, files = next(os.walk(f))
-
-
-    file_count = len(files) - 1
-    test_input = []
-    test_label = []
-    train_input = []
-    train_label = []
-
-
-    if numb_of_pictures is None and for_test is None:
-        num_of_pics = file_count
-        for_test = file_count * len(paths) * .01
-    elif numb_of_pictures is not None and for_test is None:
-        for_test = numb_of_pictures * len(paths) * .01
-        num_of_pics = numb_of_pictures
-    elif numb_of_pictures is not None and for_test is not None:
-        for_test = for_test
-        num_of_pics = numb_of_pictures
-
-    if numb_of_pictures < len(paths) or numb_of_pictures < (for_test * 3):
-        raise ValueError('Not enough for training!')
-    elif for_test < numb_of_pictures * len(paths) * .01:
-        raise ValueError('Not enough for testing!')
-    elif for_test > file_count * len(paths) * .3:
-        raise ValueError('Too many for testing!')
-
-
-    for p_count, path in enumerate(paths):
-        one_hot_enc_arr = np.zeros(len(paths))
-        one_hot_enc_arr[p_count] = 1
-
-        print(path.split('/')[-1], one_hot_enc_arr)
-
-        for pic in range(num_of_pics):
-            if pic < for_test:
-                test_input.append(scipy.misc.imread(path + '/{}.PNG'.format(pic), mode="L"))
-                test_label.append(one_hot_enc_arr)
-            else:
-                train_input.append(scipy.misc.imread(path + '/{}.PNG'.format(pic), mode="L"))
-                train_label.append(one_hot_enc_arr)
-
-    train_input = np.expand_dims(train_input, -1)
-    train_label = np.array(train_label)
-    test_input = np.expand_dims(test_input, -1)
-    test_label = np.array(test_label)
-
-    # print('Train input shape: {}, train label shape: {}\nTest input shape: {}, test label shape: {}'.
-    #      format(train_input.shape, (train_label).shape, test_input.shape, (test_label).shape))
-
-    return train_input, train_label, test_input, test_label
-'''
-
-tf.reset_default_graph()
-
-
-def get_data_test(path_r, numb_of_pictures=None, for_test=None):
-    """method for getting numpy matrices of images and one-hot-encode labels for both training and tasting
-     Data should be stored in separate files with names i.png (0<=i<=n)
-    Parameters:
-    - num_of_pics - provide particular number of pictures to be extracted,
-         if None extracts all.
-    - for_test - number of pics for testing. Cannot be bigger than 30% or less that 1
-        by default 10%
-    """
-
-    paths = [x[0] for c, x in enumerate(os.walk(path_r)) if c > 0]
-
-    f = paths[1]
-    _, _, files = next(os.walk(f))
-
-    file_count = len(files) - 1
-    test_input = []
-    test_label = []
-    train_input = []
-    train_label = []
-
-    if not for_test:
-        for p_count, path in enumerate(paths):
-            one_hot_enc_arr = np.zeros(len(paths))
-            one_hot_enc_arr[p_count] = 1
-
-            for pic in range(10):
-                train_input.append(scipy.misc.imread(path + '/{}.PNG'.format(pic), mode="L"))
-                train_label.append(one_hot_enc_arr)
-
-        train_input = np.expand_dims(train_input, -1)
-        train_label = np.array(train_label)
-
-        '''
-        print('Train input shape: {}, train label shape: {}\nTest input shape: {}, test label shape: {}'.
-              format(train_input.shape, (train_label).shape, test_input.shape, (test_label).shape))
-        '''
-        return train_input, train_label
-    else:
-        for p_count, path in enumerate(paths):
-            one_hot_enc_arr = np.zeros(len(paths))
-            one_hot_enc_arr[p_count] = 1
-            for pic in range(2):
-                test_input.append(scipy.misc.imread(path + '/{}.PNG'.format(pic), mode="L"))
-                test_label.append(one_hot_enc_arr)
-
-        test_input = np.expand_dims(test_input, -1)
-        test_label = np.array(test_label)
-        '''
-        print('Test input shape: {}, test label shape: {}'.
-              format(test_input.shape, (test_label).shape))
-        '''
-        return test_input, test_label
+from cnn import batch_generator, generate_data
 
 
 def get_custom_input(path):
@@ -182,14 +58,10 @@ def get_full_connected(shape=[None, None], prev_layer=None, is_last=False):
     return dense_layer
 
 
-def run(data, train=True, iterations=1, test_custom=None):
-    train_input, train_label, test_input, test_label = data
+def run(batch_size=5, epochs=1):
+    image_hight = generate_data.img_height
+    image_width = generate_data.img_width
 
-    print('Train input shape: {}, train label shape: {}\nTest input shape: {}, test label shape: {}'.
-          format(train_input.shape, (train_label).shape, test_input.shape, (test_label).shape))
-
-    image_hight = train_input.shape[1]
-    image_width = train_input.shape[2]
     classes_numb = 10
 
     # -------------------------------------------------------------------------------------------------------------------
@@ -226,7 +98,7 @@ def run(data, train=True, iterations=1, test_custom=None):
     correct_prediction = tf.equal(tf.argmax(Y, 1), tf.argmax(Y_, 1))
     accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
     tf.summary.scalar('accuracy', accuracy)
-
+    
     # -------------------------------------------------------------------------------------------------------------------
 
     init = tf.global_variables_initializer()
@@ -234,22 +106,38 @@ def run(data, train=True, iterations=1, test_custom=None):
     saver = tf.train.Saver()
 
     with tf.Session() as sess:
-        if train:
+
+        test_acc = 0
+        for ep in range(epochs):
             test_acc_list = []
             sess.run(init)
-            for i in range(iterations):
+
+            # initialize/reinitialize batch_generator module
+            # reinitialize - indexes of pictures to (0,batch size)
+            batch_generator.init(batch_size=batch_size)
+            # derive number of butches
+            batches = (batch_generator.train_class_size / batch_size)
+            # get trainting, test data
+            test_input, test_label = batch_generator.get_test()
+
+            for i in range(int(batches)):
+                train_input, train_label = batch_generator.next_batch()
+
                 _, c = sess.run([optimiser, cross_entropy], feed_dict={X_shaped: train_input, Y: train_label})
-                test_acc = sess.run(accuracy, feed_dict={X_shaped: test_input, Y: test_label})
-                print("Epoch:", (i + 1), ' cost: {}'.format(c), " test accuracy: {:.3f}".format(test_acc))
-                test_acc_list.append(test_acc)
+                test_acc += sess.run(accuracy, feed_dict={X_shaped: test_input, Y: test_label})
+
+            print("Epoch:", (i + 1), ' cost: {}'.format(c),
+                  "mean test accuracy: {:.3f}".format(test_acc / epochs))
+            test_acc_list.append(test_acc)
             # for debuging output of the network
             # print(np.round(sess.run(Y_, feed_dict={X_shaped: train_input, Y: train_label}), 3))
             # print(np.round(sess.run(Y, feed_dict={X_shaped: train_input, Y: train_label}), 3))
             save_path = saver.save(sess, "/Users/volodymyrkepsha/Documents/github/cnn/save/tmp/model.ckpt")
-            print('sv:', save_path)
-            plt.plot(range(iterations), test_acc_list)
-            plt.show()
 
+            # plt.plot(range(epochs), test_acc_list)
+            # plt.show()
+
+        '''
         else:
             saver.restore(sess,
                           "/Users/volodymyrkepsha/Documents/github/cnn/save/tmp/model.ckpt")
@@ -257,27 +145,8 @@ def run(data, train=True, iterations=1, test_custom=None):
             print(np.round(sess.run(Y_, feed_dict={X_shaped: test_input, Y: test_label})))
             test_acc = sess.run(accuracy, feed_dict={X_shaped: test_input, Y: test_label})
             print(" test accuracy: {:.3f}".format(test_acc))
+            '''
 
 
 if __name__ == '__main__':
-    cur = os.getcwd()
-    data_training = cur + '/training'
-    data_test = cur + '/test'
-
-    data_tr = get_data_test(data_training, for_test=False)
-    data_ts = get_data_test(data_test, for_test=True)
-
-    data = [data_tr[0], data_tr[1], data_ts[0], data_ts[1]]
-
-
-    print(data_ts[0][0].shape)
-    run(data=data, train=True, iterations=125)
-
-
-
-
-    # path_custom_times = '/Users/volodymyrkepsha/Documents/github/cnn/timeNewRoman.png'
-
-    # image_time = get_custom_input(path=path_custom_times)
-
-    # run(data=data_, train=False, iterations=50, test_custom=[image_time])
+    run(batch_size=5, epochs=20)
