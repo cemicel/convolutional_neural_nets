@@ -9,61 +9,6 @@ import sys
 import batch_generator, generate_data
 
 
-def get_data_test(path_r, numb_of_pictures=None, for_test=None):
-    """method for getting numpy matrices of images and one-hot-encode labels for both training and tasting
-     Data should be stored in separate files with names i.png (0<=i<=n)
-    Parameters:
-    - num_of_pics - provide particular number of pictures to be extracted,
-         if None extracts all.
-    - for_test - number of pics for testing. Cannot be bigger than 30% or less that 1
-        by default 10%
-    """
-
-    paths = [x[0] for c, x in enumerate(os.walk(path_r)) if c > 0]
-
-    f = paths[1]
-    _, _, files = next(os.walk(f))
-
-    file_count = len(files) - 1
-    test_input = []
-    test_label = []
-    train_input = []
-    train_label = []
-
-    if not for_test:
-        for p_count, path in enumerate(paths):
-            one_hot_enc_arr = np.zeros(len(paths))
-            one_hot_enc_arr[p_count] = 1
-
-            for pic in range(5):
-                train_input.append(scipy.misc.imread(path + '/{}.PNG'.format(pic), mode="L"))
-                train_label.append(one_hot_enc_arr)
-
-        train_input = np.expand_dims(train_input, -1)
-        train_label = np.array(train_label)
-
-        '''
-        print('Train input shape: {}, train label shape: {}\nTest input shape: {}, test label shape: {}'.
-              format(train_input.shape, (train_label).shape, test_input.shape, (test_label).shape))
-        '''
-        return train_input, train_label
-    else:
-        for p_count, path in enumerate(paths):
-            one_hot_enc_arr = np.zeros(len(paths))
-            one_hot_enc_arr[p_count] = 1
-            for pic in range(2):
-                test_input.append(scipy.misc.imread(path + '/{}.PNG'.format(pic), mode="L"))
-                test_label.append(one_hot_enc_arr)
-
-        test_input = np.expand_dims(test_input, -1)
-        test_label = np.array(test_label)
-        '''
-        print('Test input shape: {}, test label shape: {}'.
-              format(test_input.shape, (test_label).shape))
-        '''
-        return test_input, test_label
-
-
 def get_conv_layer(input_data, num_chanels, num_filters, filter_shape, pool_shape, name):
     """ method for getting a convolutional layer
         with particular parameters as:
@@ -185,7 +130,10 @@ def run(batch_size=5, epochs=1, mode='training'):
 if __name__ == '__main__':
 
     try:
+        try:
         mode = sys.argv[1]
-        run(batch_size=5, epochs=2)
+        batch_size = sys.argv[2]
+        epochs = sys.argv[3]
+        run(batch_size=int(batch_size), epochs=int(epochs))
     except IndexError:
         print('provide type: training / test')
