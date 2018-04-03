@@ -19,8 +19,12 @@ Manual:
 In repo there is my custom text file consists of 10 more less distinctive text fonts.
 2)Run in terminal: python3 generate_data.py <mode> <numb of instances per class>
 mode - training, test
-3) Run in terminal: python3 conv_net.py <mode>
-	1)First train mode, then test  
-
+3) Run in terminal: python3 conv_net.py <mode> <batch_size> <epochs>
+	1)First train mode
+	2)For now, batch size is number of picturer per class.
+	It means if in a class 50 pics, and there are 10 classess 
+	that batch of 5 will be 50 * 10 = 50 out of 450
+	
+	3)test mode in pogress.
+, then test  
 For this moment valid only for macOS
-
