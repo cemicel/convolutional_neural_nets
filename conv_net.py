@@ -111,6 +111,8 @@ def run(batch_size=5, epochs=1, mode='training'):
                 batch_generator.reset_batch_index()
 
                 test_acc_list.append(test_acc)
+            if not os.path.exists(os.getcwd()+'/save'):
+                os.makedirs(os.getcwd()+'/save/tmp')
             saver.save(sess, os.getcwd() + '/save/tmp/model.ckpt')
 
             plt.plot([i for i in range(epochs)], (test_acc_list))
@@ -130,7 +132,6 @@ def run(batch_size=5, epochs=1, mode='training'):
 if __name__ == '__main__':
 
     try:
-        try:
         mode = sys.argv[1]
         batch_size = sys.argv[2]
         epochs = sys.argv[3]
