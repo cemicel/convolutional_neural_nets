@@ -140,8 +140,11 @@ def generate_data(font_name, mode=None):
 
 
 if __name__ == '__main__':
-    font_names_path = os.getcwd() + '/font_names'
+
     try:
+        font_names_path = os.getcwd() + '/font_names.txt'
+
+
         with open(font_names_path) as f:
             line_ = f.read()
         mode = sys.argv[1]
