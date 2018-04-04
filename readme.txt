@@ -4,8 +4,6 @@ The task is to recognize text font.
 
 Under developing:
 
--create custom input for testing
--providing custom path for generating data set 
 -compatible with windows
 -bug fix
 
