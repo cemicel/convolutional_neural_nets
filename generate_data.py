@@ -17,7 +17,6 @@ text_size = 17
 
 # custom dir is under developing
 def create_dirs(font_paths, mode=None, custom_dir=None):
-    
     fonts = []
     path_to_data = []
     for font_name in font_paths:
@@ -98,6 +97,18 @@ def save_element(font, text, index, path):
     return image
 
 
+def get_custom_pic(font, text):
+
+    font = ImageFont.truetype(get_font_paths(font_number=1, font_list=[font])[0], text_size)
+
+    img = np.zeros((img_height, img_width), np.uint8)
+    p_image = Image.fromarray(img, mode='L')
+    draw = ImageDraw.Draw(p_image)
+    draw.text(xy=(5, 2), text=text, font=font, fill=255)
+    image = np.array(p_image)
+    return image
+
+
 def get_font_paths(font_number, font_list=None):
     _, _, files = next(os.walk(lib_root))
     input_font_paths = []
@@ -124,7 +135,7 @@ def generate_data(font_name, mode=None):
     # get font paths from standard library
     font_paths_ = get_font_paths(len(font_name), font_list=font_name)
 
-    #create directories for future data
+    # create directories for future data
     data_paths = create_dirs(font_paths=font_paths_, mode=mode)
 
     # iterate trough paths where data is stored
@@ -143,7 +154,6 @@ if __name__ == '__main__':
 
     try:
         font_names_path = os.getcwd() + '/font_names.txt'
-
 
         with open(font_names_path) as f:
             line_ = f.read()
