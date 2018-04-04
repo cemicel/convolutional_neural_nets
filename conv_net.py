@@ -7,6 +7,7 @@ import functools
 import os
 import sys
 import batch_generator, generate_data
+import cv2
 
 
 def get_conv_layer(input_data, num_chanels, num_filters, filter_shape, pool_shape, name):
@@ -54,7 +55,7 @@ def get_full_connected(shape=[None, None], prev_layer=None, is_last=False):
     return dense_layer
 
 
-def run(batch_size=5, epochs=1, mode='training'):
+def run(batch_size=5, epochs=1, mode='training', custom_font=None):
     image_hight = generate_data.img_height
     image_width = generate_data.img_width
 
@@ -111,30 +112,46 @@ def run(batch_size=5, epochs=1, mode='training'):
                 batch_generator.reset_batch_index()
 
                 test_acc_list.append(test_acc)
-            if not os.path.exists(os.getcwd()+'/save'):
-                os.makedirs(os.getcwd()+'/save/tmp')
+            if not os.path.exists(os.getcwd() + '/save'):
+                os.makedirs(os.getcwd() + '/save/tmp')
             saver.save(sess, os.getcwd() + '/save/tmp/model.ckpt')
 
             plt.plot([i for i in range(epochs)], (test_acc_list))
             plt.show()
         else:
 
-            test_input, test_label = get_data_test('/Users/volodymyrkepsha/Documents/github/cnn/test', for_test=True)
+            font = custom_font
+            text = 'What the font it is?'
+            custom_input = np.expand_dims(generate_data.get_custom_pic(font.strip(), text), -1)
+
+            # cv2.imshow('img', custom_input)
+            # cv2.waitKey()
+
+            test_input = np.array([custom_input])
+            test_label = np.zeros((1, 10))
+
             saver.restore(sess,
                           "/Users/volodymyrkepsha/Documents/github/cnn/save/tmp/model.ckpt")
-            print(np.round(sess.run(Y, feed_dict={X_shaped: test_input, Y: test_label})))
 
-            print(np.round(sess.run(Y_, feed_dict={X_shaped: test_input, Y: test_label})))
-            test_acc = sess.run(accuracy, feed_dict={X_shaped: test_input, Y: test_label})
-            print(" test accuracy: {:.3f}".format(test_acc))
+            # print(np.round(sess.run(Y, feed_dict={X_shaped: test_input, Y: test_label})))
+            # print(np.round(sess.run(Y_, feed_dict={X_shaped: test_input, Y: test_label})))
+
+            batch_generator.one_hot_decode(np.round(sess.run(Y_, feed_dict={X_shaped: test_input, Y: test_label}))[0])
 
 
 if __name__ == '__main__':
 
     try:
         mode = sys.argv[1]
-        batch_size = sys.argv[2]
-        epochs = sys.argv[3]
-        run(batch_size=int(batch_size), epochs=int(epochs))
+        if mode == 'training':
+            batch_size = sys.argv[2]
+            epochs = sys.argv[3]
+            run(batch_size=int(batch_size), mode=mode, epochs=int(epochs))
+        else:
+            custom_font = ''
+            for i in range(2, len(sys.argv)):
+                custom_font += sys.argv[i] + ' '
+            run(mode=mode, custom_font=custom_font)
+
     except IndexError:
         print('provide type: training / test')

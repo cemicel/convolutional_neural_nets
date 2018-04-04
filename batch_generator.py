@@ -39,8 +39,7 @@ def init(batch_size):
 
 
 def reset_batch_index():
-
-    global start, stop, batch_size_global,index_generator_global
+    global start, stop, batch_size_global, index_generator_global
     start = 0
     stop = batch_size_global
     index_generator_global = index_generator(start, train_class_size)
@@ -64,6 +63,20 @@ def get_test():
     test_input = np.expand_dims(test_input, -1)
     test_label = np.array(test_label)
     return test_input, test_label
+
+
+def one_hot_decode(arr):
+    current_work_dir = os.getcwd()
+    train_data_paths = [current_work_dir + '/training/' + direct for direct in
+                        os.listdir(current_work_dir + '/training')]
+    for p_count, path in enumerate(train_data_paths):
+        one_hot_enc_arr = np.zeros(len(train_data_paths))
+        one_hot_enc_arr[p_count] = 1
+
+
+
+        if np.array_equal(arr, one_hot_enc_arr):
+            print(path.split('/')[-1])
 
 
 def next_batch():
