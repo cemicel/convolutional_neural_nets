@@ -10,9 +10,9 @@ lib_root = '/library/Fonts/'
 current_work_directory = os.getcwd()
 numb_pic_per_class = None
 
-img_height = 28
-img_width = 168
-text_size = 17
+img_height = 38
+img_width = 174
+text_size = 22
 
 
 # custom dir is under developing
@@ -99,14 +99,26 @@ def save_element(font, text, index, path):
 
 def get_custom_pic(font, text):
 
-    font = ImageFont.truetype(get_font_paths(font_number=1, font_list=[font])[0], text_size)
+    font_path = get_font_paths(font_number=1, font_list=[font])[0]
 
+    print(font_path)
+    font = ImageFont.truetype(font_path, text_size)
     img = np.zeros((img_height, img_width), np.uint8)
     p_image = Image.fromarray(img, mode='L')
     draw = ImageDraw.Draw(p_image)
     draw.text(xy=(5, 2), text=text, font=font, fill=255)
+
+    #cv2.imshow("img", np.array(p_image))
+    #cv2.waitKeyEx(0)
+
+
     image = np.array(p_image)
     return image
+
+def save_pic(matrix):
+    path = '/Users/volodymyrkepsha/Documents/github/cnn/{}'.format('0.png')
+    cv2.imwrite(path,matrix)
+    return path
 
 
 def get_font_paths(font_number, font_list=None):

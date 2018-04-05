@@ -32,6 +32,8 @@ def init(batch_size):
     test_data_paths = [current_work_dir + '/test/' + dir for dir in os.listdir(current_work_dir + '/test/')]
     test_class_size = len(os.listdir(test_data_paths[0]))
 
+
+
     train_class_size = len(os.listdir(train_data_paths[0]))
     start = 0
     index_generator_global = index_generator(start, train_class_size)
@@ -69,14 +71,21 @@ def one_hot_decode(arr):
     current_work_dir = os.getcwd()
     train_data_paths = [current_work_dir + '/training/' + direct for direct in
                         os.listdir(current_work_dir + '/training')]
-    for p_count, path in enumerate(train_data_paths):
-        one_hot_enc_arr = np.zeros(len(train_data_paths))
+
+    retur = ''
+
+
+    print(len(train_data_paths[1:]))
+    for p_count, path in enumerate(train_data_paths[1:]):
+
+        one_hot_enc_arr = np.zeros(len(train_data_paths[1:]))
         one_hot_enc_arr[p_count] = 1
 
-
-
+        print(arr,one_hot_enc_arr)
         if np.array_equal(arr, one_hot_enc_arr):
-            print(path.split('/')[-1])
+            retur = (path.split('/')[-1])
+
+    return retur
 
 
 def next_batch():
@@ -108,3 +117,8 @@ def next_batch():
     train_label = np.array(train_label)
 
     return train_input, train_label
+
+
+'''Andale Mono, Apple Chancery, Arial, Chalkduster, Courier New, Brush Script,
+    Luminari, Times New Roman, Trebuchet MS Italic, Trebuchet MS'''
+

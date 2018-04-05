@@ -80,7 +80,7 @@ def run(batch_size=5, epochs=1, mode='training', custom_font=None):
     Y_ = tf.nn.softmax(dense_layer_2)
     # -------------------------------------------------------------------------------------------------------------------
     cross_entropy = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits_v2(logits=dense_layer_2, labels=Y))
-    optimiser = tf.train.AdamOptimizer().minimize(cross_entropy)
+    optimiser = tf.train.AdamOptimizer(learning_rate=0.001).minimize(cross_entropy)
 
     correct_prediction = tf.equal(tf.argmax(Y, 1), tf.argmax(Y_, 1))
     accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
@@ -118,40 +118,51 @@ def run(batch_size=5, epochs=1, mode='training', custom_font=None):
 
             plt.plot([i for i in range(epochs)], (test_acc_list))
             plt.show()
-        else:
+        elif mode == 'test_custom':
 
             font = custom_font
-            text = 'What the font it is?'
-            custom_input = np.expand_dims(generate_data.get_custom_pic(font.strip(), text), -1)
+            text = 'Whatsthefont'
+            custom_input_1 = np.expand_dims(generate_data.get_custom_pic(font.strip(), text), -1)
 
-            # cv2.imshow('img', custom_input)
-            # cv2.waitKey()
+            test_input_1 = np.array([custom_input_1])
 
-            test_input = np.array([custom_input])
             test_label = np.zeros((1, 10))
 
             saver.restore(sess,
                           "/Users/volodymyrkepsha/Documents/github/cnn/save/tmp/model.ckpt")
 
-            # print(np.round(sess.run(Y, feed_dict={X_shaped: test_input, Y: test_label})))
-            # print(np.round(sess.run(Y_, feed_dict={X_shaped: test_input, Y: test_label})))
+            print(np.round(sess.run(Y_, feed_dict={X_shaped: test_input_1, Y: test_label})))
 
-            batch_generator.one_hot_decode(np.round(sess.run(Y_, feed_dict={X_shaped: test_input, Y: test_label}))[0])
+
+            print(batch_generator.one_hot_decode(np.round(sess.run(Y_, feed_dict={X_shaped: test_input, Y: test_label}))[0]))
+        else:
+            batch_generator.init(5)
+            saver.restore(sess,
+                          "/Users/volodymyrkepsha/Documents/github/cnn/save/tmp/model.ckpt")
+            test_input, test_label = batch_generator.get_test()
+            print(np.round(sess.run(Y, feed_dict={X_shaped: test_input, Y: test_label})))
+            print(np.round(sess.run(Y_, feed_dict={X_shaped: test_input, Y: test_label})))
 
 
 if __name__ == '__main__':
 
     try:
         mode = sys.argv[1]
+
+        print(mode)
+
         if mode == 'training':
             batch_size = sys.argv[2]
             epochs = sys.argv[3]
             run(batch_size=int(batch_size), mode=mode, epochs=int(epochs))
-        else:
+        elif mode == 'test_custom':
             custom_font = ''
             for i in range(2, len(sys.argv)):
                 custom_font += sys.argv[i] + ' '
+
             run(mode=mode, custom_font=custom_font)
+        elif mode == 'test':
+            run(mode=mode)
 
     except IndexError:
         print('provide type: training / test')

@@ -6,6 +6,7 @@ Under developing:
 
 -compatible with windows
 -bug fix
+-impruve interface
 
 
 The network is ready to 'memorize' relatively small input (about 30 images) with
@@ -19,10 +20,13 @@ In repo there is my custom text file consists of 10 more less distinctive text f
 mode - training, test
 3) Run in terminal: python3 conv_net.py <mode> <batch_size> <epochs>
 	1)First train mode
-	2)For now, batch size is number of picturer per class.
-	It means if in a class 50 pics, and there are 10 classess 
+	2)For now, batch size is number of pictures per class.
+	It means if in a class 50 pics, and there are 10 classes 
 	that batch of 5 will be 50 * 10 = 50 out of 450
 	
-	3)test mode in pogress.
+	3)Two type of test available:
+	a) <test_custom> - type custom font from given list
+	b) <test> - tests validation data
+
 , then test  
 For this moment valid only for macOS
