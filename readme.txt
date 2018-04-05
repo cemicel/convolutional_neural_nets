@@ -25,11 +25,10 @@ mode - training, test
 	that batch of 5 will be 50 * 10 = 50 out of 450
 	
 	3)Two type of test available:
-	
 	a) ‘test_custom’ + space + type custom font from given list
 	example: conv_net.py test_custom Arial
 	
 	b) ‘test’ - tests validation data
-
-, then test  
+Some times, macOS creates .DS_Store system hidden files. 
+befor test network training/dest directoris need to be cheked with ls -a command. If you notice this file, delete it.
 For this moment valid only for macOS
