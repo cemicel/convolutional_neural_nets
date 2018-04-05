@@ -25,8 +25,11 @@ mode - training, test
 	that batch of 5 will be 50 * 10 = 50 out of 450
 	
 	3)Two type of test available:
-	a) <test_custom> - type custom font from given list
-	b) <test> - tests validation data
+	
+	a) ‘test_custom’ + space + type custom font from given list
+	example: conv_net.py test_custom Arial
+	
+	b) ‘test’ - tests validation data
 
 , then test  
 For this moment valid only for macOS
