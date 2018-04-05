@@ -121,17 +121,17 @@ def run(batch_size=5, epochs=1, mode='training', custom_font=None):
         elif mode == 'test_custom':
 
             font = custom_font
-            text = 'Whatsthefont'
-            custom_input_1 = np.expand_dims(generate_data.get_custom_pic(font.strip(), text), -1)
+            text = 'justRandomText'
+            custom_input = np.expand_dims(generate_data.get_custom_pic(font.strip(), text), -1)
 
-            test_input_1 = np.array([custom_input_1])
+            test_input = np.array([custom_input])
 
             test_label = np.zeros((1, 10))
 
             saver.restore(sess,
                           "/Users/volodymyrkepsha/Documents/github/cnn/save/tmp/model.ckpt")
 
-            print(np.round(sess.run(Y_, feed_dict={X_shaped: test_input_1, Y: test_label})))
+            print(np.round(sess.run(Y_, feed_dict={X_shaped: test_input, Y: test_label})))
 
 
             print(batch_generator.one_hot_decode(np.round(sess.run(Y_, feed_dict={X_shaped: test_input, Y: test_label}))[0]))

@@ -11,7 +11,7 @@ current_work_directory = os.getcwd()
 numb_pic_per_class = None
 
 img_height = 38
-img_width = 174
+img_width = 176
 text_size = 22
 
 
