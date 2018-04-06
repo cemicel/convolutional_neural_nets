@@ -23,18 +23,23 @@ mode - training, test
 IF there is no parameters passed, training and test data sets will be created with 20 and 1  respectively picture/s per class.
 
 3) Run in terminal: python3 conv_net.py <mode> <batch_size> <epochs>
+	<mode> - training/test_custom/test
+	
 	1)First train mode
-	2)For now, batch size is number of pictures per class.
+
+	a)For now, batch size is number of pictures per class.
 	It means if there are 50 pics in a class, and there are 10 classes 
 	then batch of 5 will be 50 * 10 = 50 out of 450
 	
-	3)Two type of test available:
-	a) ‘test_custom’ + space + type custom font from given list
-	example: conv_net.py test_custom Arial
-	
-	b) ‘test’ - tests validation data
+	b)test_custom - checks given font after mode;
+	Example:
+	-test_custom Arial
+	After, You will be asked to provide a string to recognze or press enter, 	and word 'textToRecognize' will be checked. 
+		
 
-	d)If all parameters are empty, training mode is set with batch: 5 and epochs: 50
+	3) ‘test’ - tests validation data
+
+	4)If all parameters are empty, training mode is set with batch: 5 and epochs: 50
 
 Some times, macOS creates .DS_Store system hidden files. 
 befor test network training/dest directoris need to be cheked with ls -a command. If you notice this file, delete it.
