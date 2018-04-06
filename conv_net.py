@@ -121,7 +121,9 @@ def run(batch_size=5, epochs=1, mode='training', custom_font=None):
         elif mode == 'test_custom':
 
             font = custom_font
-            text = 'justRandomText'
+            text = input('Type text to recognize, textToRecognize by default') or 'textToRecognize'
+
+
             custom_input = np.expand_dims(generate_data.get_custom_pic(font.strip(), text), -1)
 
             test_input = np.array([custom_input])
@@ -133,8 +135,8 @@ def run(batch_size=5, epochs=1, mode='training', custom_font=None):
 
             print(np.round(sess.run(Y_, feed_dict={X_shaped: test_input, Y: test_label})))
 
-
-            print(batch_generator.one_hot_decode(np.round(sess.run(Y_, feed_dict={X_shaped: test_input, Y: test_label}))[0]))
+            print(batch_generator.one_hot_decode(
+                np.round(sess.run(Y_, feed_dict={X_shaped: test_input, Y: test_label}))[0]))
         else:
             batch_generator.init(5)
             saver.restore(sess,
@@ -163,6 +165,7 @@ if __name__ == '__main__':
             run(mode=mode, custom_font=custom_font)
         elif mode == 'test':
             run(mode=mode)
-
     except IndexError:
-        print('provide type: training / test')
+        print('Default training is running with batch: 5, epochs: 50')
+        run(batch_size=5, mode='training', epochs=50)
+

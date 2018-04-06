@@ -6,8 +6,9 @@ import strgen
 import sys
 import numpy as np
 
-lib_root = '/library/Fonts/'
+
 current_work_directory = os.getcwd()
+lib_root = current_work_directory + '/fonts/'
 numb_pic_per_class = None
 
 img_height = 38
@@ -16,11 +17,11 @@ text_size = 22
 
 
 # custom dir is under developing
-def create_dirs(font_paths, mode=None, custom_dir=None):
+def create_dirs(fonts_tff, mode=None, custom_dir=None):
     fonts = []
     path_to_data = []
-    for font_name in font_paths:
-        fonts.append(font_name.split("/")[-1].split('.')[0])
+    for f in fonts_tff:
+        fonts.append(f.split('.')[0])
 
     if not os.path.exists(current_work_directory + '/{}'.format(mode)):
         os.makedirs(current_work_directory + '/{}'.format(mode))
@@ -98,7 +99,6 @@ def save_element(font, text, index, path):
 
 
 def get_custom_pic(font, text):
-
     font_path = get_font_paths(font_number=1, font_list=[font])[0]
 
     print(font_path)
@@ -108,53 +108,26 @@ def get_custom_pic(font, text):
     draw = ImageDraw.Draw(p_image)
     draw.text(xy=(5, 2), text=text, font=font, fill=255)
 
-    #cv2.imshow("img", np.array(p_image))
-    #cv2.waitKeyEx(0)
+    # cv2.imshow("img", np.array(p_image))
+    # cv2.waitKeyEx(0)
 
 
     image = np.array(p_image)
     return image
 
-def save_pic(matrix):
-    path = '/Users/volodymyrkepsha/Documents/github/cnn/{}'.format('0.png')
-    cv2.imwrite(path,matrix)
-    return path
 
-
-def get_font_paths(font_number, font_list=None):
-    _, _, files = next(os.walk(lib_root))
-    input_font_paths = []
-
-    # is under developing
-    if font_list is None:
-        print('Type font names:')  # example: 'font_name'
-
-        for font_index in range(font_number):
-            inp = input()
-            if inp + '.ttf' in files:
-                input_font_paths.append(lib_root + inp + '.ttf')
-            else:
-                print('no {} in lib'.format(inp))
-                return
-    else:
-        for font_index in font_list:
-            input_font_paths.append(lib_root + font_index + '.ttf')
-
-    return input_font_paths
-
-
-def generate_data(font_name, mode=None):
+def generate_data(fonts, mode=None):
     # get font paths from standard library
-    font_paths_ = get_font_paths(len(font_name), font_list=font_name)
+
 
     # create directories for future data
-    data_paths = create_dirs(font_paths=font_paths_, mode=mode)
+    data_paths = create_dirs(fonts_tff=fonts, mode=mode)
 
-    # iterate trough paths where data is stored
     # and create in each directory
     for i in range(len(data_paths)):
         print(data_paths[i])
-        font = ImageFont.truetype(font_paths_[i], text_size)
+
+        font = ImageFont.truetype(fonts[i], text_size)
         # generate list of random data.
         # minimum 10
         random_data = get_random_inputs(numb_pic_per_class, mode=mode)
@@ -165,18 +138,38 @@ def generate_data(font_name, mode=None):
 if __name__ == '__main__':
 
     try:
-        font_names_path = os.getcwd() + '/font_names.txt'
 
-        with open(font_names_path) as f:
-            line_ = f.read()
+        fonts = os.listdir(lib_root)
+        fonts = [i for i in fonts if i.split('.')[-1] == 'ttf']
         mode = sys.argv[1]
         numb_pic_per_class = sys.argv[2]
-        # generate data based on given fonts
-        generate_data([elem.strip() for elem in line_.split(',')], mode)
+        print(fonts)
+
+
+        generate_data(fonts, mode)
 
     except FileNotFoundError as f_err:
-        print('no such file: {}'.format(str(f_err.filename).split('/')[-1]))
+        print('fonts directory is missing')
     except IndexError  as i_err:
-        print("ERROR input args: ", i_err)
+
+        mode = None
+        if mode == 'training':
+            numb_pic_per_class = 20
+            generate_data(fonts, mode)
+            print('Default number of training pictures per class: ', numb_pic_per_class)
+        elif mode == 'test':
+            numb_pic_per_class = 1
+            generate_data(fonts, mode)
+            print('Default number of test pictures per class: ', numb_pic_per_class)
+        else:
+            numb_pic_per_class = 20
+            generate_data(fonts, 'training')
+            print('Default number of training pictures per class: ', numb_pic_per_class)
+
+            numb_pic_per_class = 1
+            generate_data(fonts, 'test')
+            print('Default number of test pictures per class: ', numb_pic_per_class)
+
+
     except OSError as os_err:
         print(os_err)
