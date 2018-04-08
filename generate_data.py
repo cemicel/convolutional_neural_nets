@@ -99,17 +99,15 @@ def save_element(font, text, index, path):
 
 
 def get_custom_pic(font, text):
-    font_path = get_font_paths(font_number=1, font_list=[font])[0]
 
-    print(font_path)
-    font = ImageFont.truetype(font_path, text_size)
+    font = ImageFont.truetype(font, text_size)
     img = np.zeros((img_height, img_width), np.uint8)
     p_image = Image.fromarray(img, mode='L')
     draw = ImageDraw.Draw(p_image)
     draw.text(xy=(5, 2), text=text, font=font, fill=255)
 
-    # cv2.imshow("img", np.array(p_image))
-    # cv2.waitKeyEx(0)
+    #cv2.imshow("img", np.array(p_image))
+    #cv2.waitKeyEx(0)
 
 
     image = np.array(p_image)
@@ -137,6 +135,14 @@ def generate_data(fonts, mode=None):
 
 if __name__ == '__main__':
 
+
+    fonts = os.listdir(lib_root)
+
+    print(fonts[0])
+    get_custom_pic(fonts[0],'a')
+
+
+    '''
     try:
 
         fonts = os.listdir(lib_root)
@@ -173,3 +179,4 @@ if __name__ == '__main__':
 
     except OSError as os_err:
         print(os_err)
+    '''
