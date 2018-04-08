@@ -136,13 +136,6 @@ def generate_data(fonts, mode=None):
 if __name__ == '__main__':
 
 
-    fonts = os.listdir(lib_root)
-
-    print(fonts[0])
-    get_custom_pic(fonts[0],'a')
-
-
-    '''
     try:
 
         fonts = os.listdir(lib_root)
@@ -179,4 +172,3 @@ if __name__ == '__main__':
 
     except OSError as os_err:
         print(os_err)
-    '''
