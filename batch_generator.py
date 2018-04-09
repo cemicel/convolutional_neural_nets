@@ -27,9 +27,12 @@ def init(batch_size):
     global batch_size_global, index_generator_global, train_class_size, stop, current_work_dir, train_data_paths, test_data_paths, test_class_size, train_class_size, start
     batch_size_global = batch_size
     current_work_dir = os.getcwd()
-    train_data_paths = [current_work_dir + '/training/' + direct for direct in
-                        os.listdir(current_work_dir + '/training')]
-    test_data_paths = [current_work_dir + '/test/' + dir for dir in os.listdir(current_work_dir + '/test/')]
+    train_data_paths = [current_work_dir + '/training/' + dir for dir in
+                        os.listdir(current_work_dir + '/training') if dir != '.DS_Store' ]
+    test_data_paths = [current_work_dir + '/test/' + dir for dir in os.listdir(current_work_dir + '/test/') if dir != '.DS_Store']
+
+
+
     test_class_size = len(os.listdir(test_data_paths[0]))
 
     train_class_size = len(os.listdir(train_data_paths[0]))
@@ -113,7 +116,3 @@ def next_batch():
     train_label = np.array(train_label)
 
     return train_input, train_label
-
-
-'''Andale Mono, Apple Chancery, Arial, Chalkduster, Courier New, Brush Script,
-    Luminari, Times New Roman, Trebuchet MS Italic, Trebuchet MS'''

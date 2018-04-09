@@ -99,7 +99,7 @@ def save_element(font, text, index, path):
 
 
 def get_custom_pic(font, text):
-
+    print(font)
     font = ImageFont.truetype(font, text_size)
     img = np.zeros((img_height, img_width), np.uint8)
     p_image = Image.fromarray(img, mode='L')
