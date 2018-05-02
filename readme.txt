@@ -5,7 +5,7 @@ The task is to recognize text font.
 Under developing:
 
 -bug fix
--impruve interface
+-improve interface
 
 
 The network is ready to 'memorize' relatively small input (about 30 images) with
@@ -14,13 +14,22 @@ The network is ready to 'memorize' relatively small input (about 30 images) with
 After training the network, in work directory ‘save’ directory is created with network adjustments. After you can test the network.
 
 
+
+
 Manual:
-1)Provide directory with fonts (.ttf);
-In repo there is my custom directory of 10, more less distinctive text fonts.
+1)Provide directory called fonts.
+In the directory, there should be two folders (standatd,styled ). One with standard fonts (like: Arial, Times New roman), other with styled fonts(like: Arial italic,Times New Roman bold). Either of folders can be empty.
+
+    
+
+
+
 
 2)Run in terminal: python3 generate_data.py <mode> <numb of instances per class>
 mode - training, test
-IF there is no parameters passed, training and test data sets will be created with 20 and 1 picture/s per class respectively.
+IF there is no parameters passed, training and test data sets will be created with 100 and 10 picture/s per class respectively.
+
+
 
 3) Run in terminal: python3 conv_net.py <mode> <batch_size> <epochs>
 	<mode> - training/test_custom/test
