@@ -11,14 +11,15 @@ Under developing:
 The network is ready to 'memorize' relatively small input (about 30 images) with
 100% accuracy, however accuracy can vary within 10-15% for same epochs working on validation data tests.
 
-After training the network, in work directory ‘save’ directory is created with network adjustments. After you can test the network.
-
-
+After training the network, in work directory ‘save’ directory is created with network adjustments. 
+After you can test the network.
 
 
 Manual:
 1)Provide directory called fonts.
-In the directory, there should be two folders (standatd,styled ). One with standard fonts (like: Arial, Times New roman), other with styled fonts(like: Arial italic,Times New Roman bold). Either of folders can be empty.
+In the directory, there should be two folders (standatd,styled ). One with standard fonts (like: Arial, Times New roman),
+other with styled fonts(like: Arial italic,Times New Roman bold). Either of folders can be empty.
+In the repo, there is my custom font directory.
 
     
 
