@@ -55,7 +55,7 @@ def get_full_connected(shape=[None, None], prev_layer=None, is_last=False):
     return dense_layer
 
 
-def run(batch_size=5, epochs=1, mode='training', custom_font=None):
+def run(batch_size=5, epochs=1, mode='training', custom_font=None, text=None):
     image_hight = generate_data.img_height
     image_width = generate_data.img_width
 
@@ -120,9 +120,11 @@ def run(batch_size=5, epochs=1, mode='training', custom_font=None):
             plt.show()
         elif mode == 'test_custom':
 
-            font = custom_font
-            text = input('Type text to recognize, textToRecognize by default') or 'textToRecognize'
+            if text is None:
+                text = 'textToRecognize'
 
+            font = custom_font
+            print('default text: ', text)
 
             custom_input = np.expand_dims(generate_data.get_custom_pic(font.strip(), text), -1)
 
@@ -131,16 +133,18 @@ def run(batch_size=5, epochs=1, mode='training', custom_font=None):
             test_label = np.zeros((1, 10))
 
             saver.restore(sess,
-                          "/Users/volodymyrkepsha/Documents/github/cnn/save/tmp/model.ckpt")
+                          "/save/tmp/model.ckpt")
 
             print(np.round(sess.run(Y_, feed_dict={X_shaped: test_input, Y: test_label})))
 
-            print(batch_generator.one_hot_decode(
-                np.round(sess.run(Y_, feed_dict={X_shaped: test_input, Y: test_label}))[0]))
+            return batch_generator.one_hot_decode(
+                np.round(sess.run(Y_, feed_dict={X_shaped: test_input, Y: test_label}))[0])
+
+
         else:
             batch_generator.init(5)
             saver.restore(sess,
-                          "/Users/volodymyrkepsha/Documents/github/cnn/save/tmp/model.ckpt")
+                          "/save/tmp/model.ckpt")
             test_input, test_label = batch_generator.get_test()
             print(np.round(sess.run(Y, feed_dict={X_shaped: test_input, Y: test_label})))
             print(np.round(sess.run(Y_, feed_dict={X_shaped: test_input, Y: test_label})))
@@ -161,11 +165,16 @@ if __name__ == '__main__':
             custom_font = ''
             for i in range(2, len(sys.argv)):
                 custom_font += sys.argv[i] + ' '
+        
+            text_pass = input('Type text to recognize, textToRecognize by default')
+            acc = 0
+            for i in test_case:
+                print(run(mode=mode, text='tesxts', custom_font=custom_font))
 
-            run(mode=mode, custom_font=custom_font)
+
         elif mode == 'test':
             run(mode=mode)
     except IndexError:
-        print('Default training is running with batch: 5, epochs: 50')
+        print('Default training is running with batch: 5, epochs: 5'
+              '0')
         run(batch_size=5, mode='training', epochs=50)
-
