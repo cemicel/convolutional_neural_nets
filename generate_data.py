@@ -5,13 +5,14 @@ from strgen import StringGenerator
 import strgen
 import sys
 import numpy as np
+from optparse import OptionParser
 
 current_work_directory = os.getcwd()
 fonts = current_work_directory + '/fonts'
 numb_pic_per_class = None
 
-original = fonts + '/original'
-variety = fonts + '/variety'
+original = fonts + '/standard'
+variety = fonts + '/styled'
 
 img_height = 38
 img_width = 176
@@ -59,7 +60,7 @@ def get_random_inputs(input_number=10, length=13, mode=None):
     str_patt = "[a-z]{" + str(length) + "}"
     dig_patt = "[0-9]{" + str(length) + "}"
 
-    if mode == 'training':
+    if mode == 'train':
         default_string = 'abcdefghijklmnopqrstuvwxyz' + 'abcdefghijklmnopqrstuvwxyz'.upper() + '0123456789'
         list_for_return = []
         div = int(len(default_string) / length)
@@ -137,7 +138,6 @@ def generate_data(fonts, mode=None, underline=False):
 
     # create directories for future data
 
-
     if not underline:
         data_paths = create_dirs(fonts_tff=fonts, mode=mode)
 
@@ -171,13 +171,26 @@ def generate_data(fonts, mode=None, underline=False):
 
 if __name__ == '__main__':
 
+    parser = OptionParser()
+
+    parser.add_option('-m', '--mode',
+                      dest='mode',
+                      default='train', help='train,test,valid')
+
+    parser.add_option('-n', '--numb_pic',
+                      dest='numb_pic',
+                      default='100')
+
+    options, _ = parser.parse_args()
+
     try:
 
         # original will be duplicated with underline
         original_fonts = [i for i in os.listdir(original) if i.split('.')[-1] == 'ttf']
         variety_fonts = [i for i in os.listdir(variety) if i.split('.')[-1] == 'ttf']
-        mode = sys.argv[1]
-        numb_pic_per_class = sys.argv[2]
+
+        mode = options.mode
+        numb_pic_per_class = options.numb_pic
 
         generate_data(original_fonts, mode, underline=True)
         generate_data(variety_fonts, mode, underline=False)
@@ -185,21 +198,7 @@ if __name__ == '__main__':
 
 
     except FileNotFoundError as f_err:
-        print('fonts directory is missing')
-
-
-    except IndexError  as i_err:
-
-        numb_pic_per_class = 20
-        generate_data(original_fonts, 'training', underline=True)
-        generate_data(variety_fonts, 'training', underline=False)
-        print('Default number of training pictures per class: ', numb_pic_per_class)
-
-        numb_pic_per_class = 1
-
-        generate_data(original_fonts, 'test', underline=True)
-        generate_data(variety_fonts, 'test', underline=False)
-        print('Default number of test pictures per class: ', numb_pic_per_class)
+        print('directory is missing')
 
     except OSError as os_err:
         print(os_err)
